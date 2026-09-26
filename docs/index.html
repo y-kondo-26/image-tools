@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>画像ツール — 背景透過・色反転・形式変換</title>
+    <meta
+      name="description"
+      content="画像の背景を AI で透過 PNG に。色の反転や PNG・JPEG・WebP・BMP・ICO などへの形式変換も、ブラウザの中だけで行います。画像はサーバーに送信されません。"
+    />
+    <meta name="theme-color" content="#4f46e5" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <link rel="stylesheet" href="style.css" />
+    <script src="coi.js"></script>
+    <script type="module" src="app.js"></script>
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="brand">
+        <img src="favicon.svg" alt="" width="28" height="28" />
+        <span>画像ツール</span>
+      </div>
+      <p class="tagline">背景の透過・色の反転・形式の変換を、ブラウザの中だけで。</p>
+    </header>
+
+    <main>
+      <label id="dropzone" class="dropzone" for="file-input" tabindex="0">
+        <svg
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          aria-hidden="true"
+        >
+          <rect x="3" y="3" width="18" height="18" rx="3" />
+          <circle cx="8.5" cy="8.5" r="1.5" />
+          <path d="m21 15-4.5-4.5L7 20" />
+        </svg>
+        <span class="dz-title">画像をドロップ、またはクリックして選択</span>
+        <span class="dz-sub">コピーした画像は Ctrl+V（⌘V）で貼り付けられます</span>
+        <span class="dz-formats">PNG・JPEG・WebP・GIF・BMP・AVIF・SVG・ICO など</span>
+      </label>
+      <input id="file-input" type="file" accept="image/*,.ico,.svg,.heic,.heif" hidden />
+
+      <div id="workspace" class="workspace" hidden>
+        <section class="preview-pane" aria-label="プレビュー">
+          <div class="preview-toolbar">
+            <div class="segmented" role="group" aria-label="表示の切り替え">
+              <button type="button" data-view="result" aria-pressed="true">結果</button>
+              <button type="button" data-view="source" aria-pressed="false">元画像</button>
+            </div>
+            <span id="image-info" class="image-info"></span>
+          </div>
+          <div class="preview checkerboard">
+            <canvas id="result-canvas"></canvas>
+            <canvas id="source-canvas" hidden></canvas>
+          </div>
+        </section>
+
+        <aside class="panel">
+          <section class="card">
+            <h2>編集</h2>
+            <label class="switch-row">
+              <span class="switch-text">
+                <strong>背景を透過</strong>
+                <small>AI が被写体を見つけて背景を消します</small>
+              </span>
+              <input id="opt-remove-bg" class="switch-input" type="checkbox" role="switch" />
+              <span class="switch-ui" aria-hidden="true"></span>
+            </label>
+            <div id="bg-status" class="bg-status" hidden>
+              <div id="bg-progress" class="progress"><div class="progress-bar"></div></div>
+              <p id="bg-status-text" aria-live="polite"></p>
+            </div>
+            <p id="bg-info" class="hint"></p>
+            <label class="switch-row">
+              <span class="switch-text">
+                <strong>色を反転</strong>
+                <small>ネガのように色と明るさを反転します</small>
+              </span>
+              <input id="opt-invert" class="switch-input" type="checkbox" role="switch" />
+              <span class="switch-ui" aria-hidden="true"></span>
+            </label>
+          </section>
+
+          <section class="card">
+            <h2>書き出し</h2>
+            <fieldset class="formats">
+              <legend class="sr-only">形式</legend>
+              <label><input type="radio" name="format" value="png" checked /><span>PNG</span></label>
+              <label><input type="radio" name="format" value="jpeg" /><span>JPEG</span></label>
+              <label><input type="radio" name="format" value="webp" /><span>WebP</span></label>
+              <label><input type="radio" name="format" value="avif" /><span>AVIF</span></label>
+              <label><input type="radio" name="format" value="bmp" /><span>BMP</span></label>
+              <label><input type="radio" name="format" value="ico" /><span>ICO</span></label>
+            </fieldset>
+            <p id="format-note" class="hint"></p>
+            <div id="quality-field" class="field">
+              <label for="quality"><span>品質</span><output id="quality-value" for="quality">90</output></label>
+              <input id="quality" type="range" min="10" max="100" step="1" value="90" />
+            </div>
+            <div id="bg-field" class="field field-inline" hidden>
+              <label for="bg-color">透明部分の色</label>
+              <input id="bg-color" type="color" value="#ffffff" />
+            </div>
+            <div class="field">
+              <label for="file-name">
+                <span>ファイル名</span>
+                <span id="export-size-wrap" hidden>サイズ <output id="export-size"></output></span>
+              </label>
+              <input id="file-name" type="text" spellcheck="false" autocomplete="off" />
+            </div>
+            <div class="actions">
+              <button id="download-btn" class="btn btn-primary" type="button">ダウンロード</button>
+              <button id="copy-btn" class="btn" type="button" title="PNG としてクリップボードにコピー">コピー</button>
+            </div>
+          </section>
+
+          <button id="change-image" class="btn btn-ghost" type="button">別の画像を選ぶ</button>
+        </aside>
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>画像はお使いのブラウザの中だけで処理され、どこにも送信されません。</p>
+      <p><a href="https://github.com/y-kondo-26/image-tools">GitHub</a> · v1.0.0</p>
+    </footer>
+
+    <div class="drop-overlay" aria-hidden="true"><span>ドロップして開く</span></div>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  </body>
+</html>

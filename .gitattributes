@@ -1,0 +1,3 @@
+# モデルと WebAssembly はバイナリとして扱う（改行変換や差分表示の対象にしない）
+*.onnx binary
+*.wasm binary

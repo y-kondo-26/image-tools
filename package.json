@@ -1,0 +1,13 @@
+{
+  "name": "image-tools",
+  "private": true,
+  "version": "1.0.0",
+  "description": "ブラウザだけで動く画像ツール（背景透過・色反転・形式変換）",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "test": "node --test test/image-core.test.js",
+    "e2e": "node scripts/e2e.mjs",
+    "vendor": "scripts/vendor-ort.sh"
+  }
+}
